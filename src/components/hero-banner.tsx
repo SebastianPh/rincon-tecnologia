@@ -1,130 +1,63 @@
-// src/components/hero-banner.tsx
-"use client";
+'use client'
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client' // Ajusta según la ubicación de tu cliente de Supabase
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
-import { supabase } from "@/lib/supabase";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
-
-export interface BannerSlide {
-  id: string;
-  image_url: string;
-  title: string;
-  link_url?: string;
+interface Banner {
+  id: string
+  title: string
+  image_url: string
 }
 
-export function HeroBanner() {
-  const [banners, setBanners] = useState<BannerSlide[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentIndex, setCurrentIndex] = useState(0);
+export default function HeroBanner() {
+  const [banners, setBanners] = useState<Banner[]>([])
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const supabase = createClient()
 
-  // Cargar banners desde la base de datos de Supabase
+  // Cargar banners desde Supabase
   useEffect(() => {
     async function fetchBanners() {
-      try {
-        const { data, error } = await supabase
-          .from("banners")
-          .select("*")
-          .eq("active", true)
-          .order("created_at", { ascending: false });
-
-        if (error) throw error;
-        if (data && data.length > 0) {
-          setBanners(data);
-        }
-      } catch (err) {
-        console.error("Error al cargar banners de Supabase:", err);
-      } finally {
-        setLoading(false);
+      const { data } = await supabase.from('banners').select('*').eq('active', true)
+      if (data && data.length > 0) {
+        setBanners(data)
       }
     }
+    fetchBanners()
+  }, [])
 
-    fetchBanners();
-  }, []);
-
-  // Rotación automática cada 6 segundos
+  // Cambio automático cada 5 segundos
   useEffect(() => {
-    if (banners.length <= 1) return;
+    if (banners.length === 0) return
     const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % banners.length);
-    }, 6000);
-    return () => clearInterval(timer);
-  }, [banners.length]);
+      setCurrentIndex((prev) => (prev + 1) % banners.length)
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [banners])
 
-  const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % banners.length);
-  const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
-
-  const active = banners[currentIndex];
-
-  if (loading) {
-    return (
-      <div className="w-full aspect-[16/6] md:aspect-[21/7] rounded-2xl bg-slate-950 border-2 border-[#00f0ff]/40 flex items-center justify-center my-6">
-        <Loader2 className="w-8 h-8 text-[#00f0ff] animate-spin" />
-      </div>
-    );
-  }
-
-  if (banners.length === 0) return null;
+  if (banners.length === 0) return null
 
   return (
-    <div className="relative w-full my-6">
-      {/* MARCO CON TUBO Y RESPLANDOR NEÓN DE LÁMPARA NOCTURNA */}
-      <div className="relative w-full aspect-[16/6] md:aspect-[21/7] rounded-2xl overflow-hidden bg-slate-950 border-2 border-[#00f0ff] glow-cyan shadow-[0_0_30px_rgba(0,240,255,0.4)] transition-all duration-500 group">
-        
-        {/* IMAGEN REAL DEL BANNER DESDE SUPABASE */}
-        {active && (
-          <a
-            href={active.link_url || "#"}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="relative block w-full h-full"
-          >
-            <Image
-              src={active.image_url}
-              alt={active.title}
-              fill
-              priority
-              unoptimized
-              className="object-cover group-hover:scale-102 transition-transform duration-500"
-            />
-          </a>
-        )}
+    <div className="relative w-full overflow-hidden rounded-2xl border border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.15)]">
+      {/* Imagen actual con ajuste perfecto */}
+      <div className="w-full h-[250px] sm:h-[350px] md:h-[400px] relative">
+        <img
+          src={banners[currentIndex].image_url}
+          alt={banners[currentIndex].title || 'Banner'}
+          className="w-full h-full object-cover object-center transition-all duration-700 ease-in-out"
+        />
+      </div>
 
-        {/* BORDE INTERNO RESPLANDECIENTE TIPO NEÓN */}
-        <div className="absolute inset-0 border border-[#fcee0a]/30 pointer-events-none rounded-2xl" />
-
-        {/* CONTROLES DE NAVEGACIÓN */}
-        {banners.length > 1 && (
-          <>
-            <button
-              onClick={prevSlide}
-              className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 bg-slate-950/80 hover:bg-[#fcee0a] text-[#00f0ff] hover:text-slate-950 border border-[#00f0ff] transition-all cursor-pointer z-20 backdrop-blur-md"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-
-            <button
-              onClick={nextSlide}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 bg-slate-950/80 hover:bg-[#fcee0a] text-[#00f0ff] hover:text-slate-950 border border-[#00f0ff] transition-all cursor-pointer z-20 backdrop-blur-md"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-
-            {/* PUNTOS INDICADORES DE PANTALLAS */}
-            <div className="absolute bottom-4 right-6 flex items-center gap-2 z-20">
-              {banners.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentIndex(idx)}
-                  className={`h-2 transition-all cursor-pointer ${
-                    currentIndex === idx ? "w-6 bg-[#fcee0a]" : "w-2 bg-slate-700 hover:bg-slate-500"
-                  }`}
-                />
-              ))}
-            </div>
-          </>
-        )}
+      {/* Indicadores inferiores (puntitos) */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+        {banners.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentIndex(index)}
+            className={`h-2.5 rounded-full transition-all ${
+              currentIndex === index ? 'w-8 bg-cyan-400' : 'w-2.5 bg-white/50'
+            }`}
+          />
+        ))}
       </div>
     </div>
-  );
+  )
 }
