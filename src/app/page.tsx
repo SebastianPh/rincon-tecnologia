@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { Product } from "@/types";
 import { ProductCard } from "@/components/product-card";
 import { CategoryFilters } from "@/components/category-filters";
-import { HeroBanner } from "@/components/hero-banner";
+import  HeroBanner  from "@/components/hero-banner";
 import { ShieldCheck, Truck, Zap, Search, PackageX, Loader2 } from "lucide-react";
 
 export default function Home() {
