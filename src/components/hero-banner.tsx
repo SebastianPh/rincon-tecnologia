@@ -8,27 +8,37 @@ interface Banner {
   image_url: string
 }
 
-// Inicialización directa del cliente de Supabase usando variables públicas
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export default function HeroBanner() {
-  const [banners, setBanners] = useState<Banner[]>([
-    // Banner por defecto mientras carga o si falla la BD
-    {
-      id: 'default',
-      title: 'Bienvenido',
-      image_url: '/images/banner.png'
-    }
-  ])
+  const [banners, setBanners] = useState<Banner[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
 
   useEffect(() => {
     async function fetchBanners() {
-      const { data, error } = await supabase.from('banners').select('*').eq('active', true)
+      const { data, error } = await supabase
+        .from('banners')
+        .select('*')
+        .eq('active', true)
+
       if (data && data.length > 0 && !error) {
         setBanners(data)
+      } else {
+        // Fallback directo a las imágenes JPG cargadas en tu bucket
+        setBanners([
+          {
+            id: '1',
+            title: 'Banner Principal',
+            image_url: 'https://lpydkbkwmtbbhrzsnzzs.supabase.co/storage/v1/object/public/images/banners/banner.jpg'
+          },
+          {
+            id: '2',
+            title: 'Promociones del Mes',
+            image_url: 'https://lpydkbkwmtbbhrzsnzzs.supabase.co/storage/v1/object/public/images/banners/promociones.jpg'
+          }
+        ])
       }
     }
     fetchBanners()
@@ -36,24 +46,31 @@ export default function HeroBanner() {
 
   useEffect(() => {
     if (banners.length <= 1) return
-    const timer = setInterval(() => {
+    const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % banners.length)
-    }, 5000)
-    return () => clearInterval(timer)
+    }, 4000)
+    return () => clearInterval(interval)
   }, [banners])
 
+  if (banners.length === 0) return null
+
   return (
-    <div className="relative w-full overflow-hidden rounded-2xl border border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.15)] mb-8">
+    <div className="relative w-full overflow-hidden rounded-2xl border border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.2)] mb-8">
       <div className="w-full h-[250px] sm:h-[350px] md:h-[400px] relative bg-slate-950">
-        <img
-          src={banners[currentIndex]?.image_url || '/images/banner.png'}
-          alt={banners[currentIndex]?.title || 'Banner Rincón de la Tecnología'}
-          className="w-full h-full object-cover object-center transition-all duration-700 ease-in-out"
-        />
+        {banners.map((banner, index) => (
+          <img
+            key={banner.id || index}
+            src={banner.image_url}
+            alt={banner.title || 'Banner'}
+            className={`absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000 ${
+              index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+            }`}
+          />
+        ))}
       </div>
 
       {banners.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
           {banners.map((_, index) => (
             <button
               key={index}
