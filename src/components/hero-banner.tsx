@@ -26,7 +26,6 @@ export default function HeroBanner() {
       if (data && data.length > 0 && !error) {
         setBanners(data)
       } else {
-        // Fallback directo a las imágenes JPG cargadas en tu bucket
         setBanners([
           {
             id: '1',
@@ -55,14 +54,15 @@ export default function HeroBanner() {
   if (banners.length === 0) return null
 
   return (
-    <div className="relative w-full overflow-hidden rounded-2xl border border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.2)] mb-8">
-      <div className="w-full h-[250px] sm:h-[350px] md:h-[400px] relative bg-slate-950">
+    <div className="relative w-full overflow-hidden rounded-2xl border border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.2)] mb-8 bg-slate-950">
+      {/* Reducimos la altura a 200px / 280px / 320px para que encaje compacto */}
+      <div className="w-full h-[180px] sm:h-[260px] md:h-[320px] relative flex items-center justify-center">
         {banners.map((banner, index) => (
           <img
             key={banner.id || index}
             src={banner.image_url}
             alt={banner.title || 'Banner'}
-            className={`absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000 ${
+            className={`absolute top-0 left-0 w-full h-full object-contain transition-opacity duration-700 ease-in-out ${
               index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
             }`}
           />
@@ -70,12 +70,12 @@ export default function HeroBanner() {
       </div>
 
       {banners.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-20">
           {banners.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
-              className={`h-2.5 rounded-full transition-all ${
+              className={`h-2.5 rounded-full transition-all duration-300 ${
                 currentIndex === index ? 'w-8 bg-cyan-400' : 'w-2.5 bg-white/50'
               }`}
             />
