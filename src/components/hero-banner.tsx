@@ -3,9 +3,10 @@ import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
 interface Banner {
-  id: string
+  id?: string
   title: string
   image_url: string
+  active?: boolean
 }
 
 export default function HeroBanner() {
@@ -21,23 +22,20 @@ export default function HeroBanner() {
 
   useEffect(() => {
     async function fetchBanners() {
-      const { data, error } = await supabase
-        .from('banners')
-        .select('*')
-        .eq('active', true)
+      try {
+        const { data, error } = await supabase
+          .from('banners')
+          .select('*')
+          .eq('active', true)
 
-      if (data && data.length > 0 && !error) {
-        setBanners(data)
-      } else {
-        setBanners([
-          {
-            id: '1',
-            title: 'Recién Llegados',
-            image_url: 'https://lpydkbkwmtbbhrzsnzzs.supabase.co/storage/v1/object/public/images/banners/banner-llegados.jpg'
-          }
-        ])
+        if (data && data.length > 0 && !error) {
+          setBanners(data)
+        }
+      } catch (e) {
+        console.error('Error fetching banners:', e)
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
     fetchBanners()
   }, [supabase])
@@ -52,7 +50,7 @@ export default function HeroBanner() {
 
   if (loading) {
     return (
-      <div className="w-full h-[220px] sm:h-[300px] bg-slate-900 rounded-2xl animate-pulse mb-8 border border-cyan-500/20" />
+      <div className="w-full h-[200px] sm:h-[280px] md:h-[320px] bg-slate-900 rounded-2xl animate-pulse mb-8 border border-cyan-500/20" />
     )
   }
 
@@ -60,21 +58,13 @@ export default function HeroBanner() {
 
   return (
     <div className="relative w-full overflow-hidden rounded-2xl mb-8 bg-slate-950/80 border border-cyan-500/30">
-      {/* 
-        ALTURA FIJA CONTROLADA: 200px en celular, 280px en tablets, 320px en PC.
-        Garantiza que el banner no tome toda la pantalla ni se vuelva gigante.
-      */}
       <div className="w-full h-[200px] sm:h-[280px] md:h-[320px] relative flex items-center justify-center p-2">
         {banners.map((banner, index) => (
           <img
             key={banner.id || index}
             src={banner.image_url}
             alt={banner.title || 'Banner'}
-            /* 
-              object-contain: OBLIGA a que la imagen se escale completa 
-              sin recortar ni un solo píxel de los bordes, del texto o del robot.
-            */
-            className={`max-w-full max-h-full object-contain transition-opacity duration-700 ease-in-out ${
+            className={`max-w-full max-h-full object-contain transition-opacity duration-700 ease-in-out absolute top-0 left-0 w-full h-full p-2 ${
               index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
             }`}
           />
