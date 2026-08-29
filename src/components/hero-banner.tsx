@@ -52,21 +52,29 @@ export default function HeroBanner() {
 
   if (loading) {
     return (
-      <div className="w-full h-auto aspect-[2.1/1] bg-slate-900 rounded-2xl animate-pulse mb-8 border border-cyan-500/20" />
+      <div className="w-full h-[220px] sm:h-[300px] bg-slate-900 rounded-2xl animate-pulse mb-8 border border-cyan-500/20" />
     )
   }
 
   if (banners.length === 0) return null
 
   return (
-    <div className="relative w-full overflow-hidden rounded-2xl mb-8 bg-slate-950">
-      <div className="w-full h-auto aspect-[2.1/1] relative flex items-center justify-center">
+    <div className="relative w-full overflow-hidden rounded-2xl mb-8 bg-slate-950/80 border border-cyan-500/30">
+      {/* 
+        ALTURA FIJA CONTROLADA: 200px en celular, 280px en tablets, 320px en PC.
+        Garantiza que el banner no tome toda la pantalla ni se vuelva gigante.
+      */}
+      <div className="w-full h-[200px] sm:h-[280px] md:h-[320px] relative flex items-center justify-center p-2">
         {banners.map((banner, index) => (
           <img
             key={banner.id || index}
             src={banner.image_url}
             alt={banner.title || 'Banner'}
-            className={`absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out ${
+            /* 
+              object-contain: OBLIGA a que la imagen se escale completa 
+              sin recortar ni un solo píxel de los bordes, del texto o del robot.
+            */
+            className={`max-w-full max-h-full object-contain transition-opacity duration-700 ease-in-out ${
               index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
             }`}
           />
