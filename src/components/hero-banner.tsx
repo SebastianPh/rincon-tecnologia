@@ -11,8 +11,8 @@ interface Banner {
 export default function HeroBanner() {
   const [banners, setBanners] = useState<Banner[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [loading, setLoading] = useState(true)
 
-  // Crear la instancia única del cliente de Supabase
   const supabase = useMemo(() => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
@@ -28,7 +28,17 @@ export default function HeroBanner() {
 
       if (data && data.length > 0 && !error) {
         setBanners(data)
+      } else {
+        // Carga directa de la imagen como fallback
+        setBanners([
+          {
+            id: '1',
+            title: 'Recién Llegados',
+            image_url: 'https://lpydkbkwmtbbhrzsnzzs.supabase.co/storage/v1/object/public/images/banners/banner-llegados.jpg'
+          }
+        ])
       }
+      setLoading(false)
     }
     fetchBanners()
   }, [supabase])
@@ -40,6 +50,12 @@ export default function HeroBanner() {
     }, 4000)
     return () => clearInterval(interval)
   }, [banners])
+
+  if (loading) {
+    return (
+      <div className="w-full h-[180px] sm:h-[260px] md:h-[320px] bg-slate-900 rounded-2xl animate-pulse mb-8 border border-cyan-500/20" />
+    )
+  }
 
   if (banners.length === 0) return null
 
